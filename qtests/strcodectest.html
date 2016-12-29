@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>String codec tests</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/fmtio.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/error.js"></script>
+ <script src="../src/core/strcodec.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.test("trivial encoding",function(assert)
+   {
+    var source   = "Trivial";
+    var expected = source;
+
+    var actual = CPL.Core.StringCodec.encodeString(source);
+
+    assert.equal(actual,expected);
+   });
+
+  QUnit.test("encoding with spaces",function(assert)
+   {
+    var source   = "John Doe Jr.";
+    var expected = "\"John\\20Doe\\20Jr.\"";
+
+    var actual = CPL.Core.StringCodec.encodeString(source);
+
+    assert.equal(actual,expected);
+   });
+
+  QUnit.test("trivial decoding",function(assert)
+   {
+    var source   = "Trivial";
+    var expected = source;
+
+    var actual = CPL.Core.StringCodec.decodeString(source);
+
+    assert.equal(actual,expected);
+   });
+
+  QUnit.test("decoding with spaces",function(assert)
+   {
+    var source   = "\"John\\20Doe\\20Jr.\"";
+    var expected = "John Doe Jr.";
+
+    var actual = CPL.Core.StringCodec.decodeString(source);
+
+    assert.equal(actual,expected);
+   });
+
+ </script>
+</body>
+</html>
+
+

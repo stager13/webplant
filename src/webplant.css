@@ -1,0 +1,119 @@
+html, body
+ {
+  position: relative;
+  height:   100%;
+  margin:   0;
+  padding:  0;
+  background-color: #F0F0F0;
+ }
+
+table.param-panel
+ {
+  border:        1px solid black;
+  border-radius: 3px;
+  margin-bottom: 2px;
+ }
+
+.view
+ {
+  width:    100%;
+  height:   100%;
+  position: relative;
+ }
+
+.canvas-view #webgl
+ {
+  position: relative;
+  width:100%;
+ }
+
+/*
+.canvas-view #webgl {
+  width:100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+*/
+
+.right-pannel
+ {
+  position: relative;
+  width:    400px;
+}
+.right-pannel > #stem-model-selection-panel
+ {
+  position: absolute;
+  top:      0;
+  height:   2rem;
+  width:    100%;
+ }
+
+.right-pannel > .params-view
+ {
+  position: absolute;
+  top:      2.5rem;
+  bottom:   100px;
+  width:    100%;
+  overflow: auto;
+ }
+
+.right-pannel > .bottom-params
+ {
+  position: absolute;
+  height:   100px;
+  width:    100%;
+  bottom:   0;
+  overflow: auto;
+ }
+
+.input-file
+ {
+  width : 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+ }
+
+.button-style
+ {
+  padding: 0px 2px 0px 2px;
+  margin: 2px 2px 2px 2px;
+ }
+
+.button-style, button
+ {
+  color: #000000;
+  background-color: #F0F0F0;
+  border: 2px solid #808080;
+  border-style: solid;
+  border-radius: 5px;
+
+  -webkit-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+ }
+
+.button-style:hover, button:hover
+ {
+  color: #E0E0E0;
+  background-color: #808080;
+ }
+
+.texture-thumbnail
+ {
+  width: 32px;
+  height: 32px;
+ }
+
+#structure-tree
+ {
+  border:        1px solid black;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  margin-top: 2px;
+ }
+

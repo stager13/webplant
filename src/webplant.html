@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <title>Plant generator demo</title>
+
+  <link rel="stylesheet" type="text/css" href="webplant.css"></link>
+ </head>
+ <body onload="main()">
+
+  <table class="view">
+   <tr>
+    <td class="canvas-view" style="vertical-align: top;">
+     <canvas id="webgl" width="640" height="480">
+       This application requires canvas support
+     </canvas>
+
+     <div>
+      <label class="button-style">
+       <input class="input-file" id="load-button" type="file"/>
+       Load...
+      </label>
+      <select id="select-plant-from-db" style="display:none;">
+      </select>
+      <button id="save-button">Save...</button>
+      <button id="save-nga-button">Save NGA...</button>
+      <button id="save-obj-button">Save OBJ...</button>
+      <button id="undo-button">Undo</button>
+      <button id="redo-button">Redo</button>
+     </div>
+     <br/>
+     Drag with middle mouse button pressed to rotate camera.
+     <br/>
+     Drag with Shift+middle mouse button to move camera.
+     <br/>
+     Use mouse wheel to zoom-in/zoom-out.
+     <br/>
+     Use numpad keys 7,1,3 to switch to "Top","Front" or "Side" view.
+     <br/>
+     Use numpad keys 4,6,2,8 to rotate camera.
+     <br/>
+     Click on "Trunk","Branch1" etc label on the right to choose branch group to edit.
+
+     <div style="position: absolute; bottom: 5px; left: 5px; text-align: center; font-size: 50%;">
+      (c) Sergey Prokhorchuk 2016, example models contain author and copyright information in meta-info section
+     </div>
+    </td>
+
+    <td class="right-pannel" style="vertical-align: top;">
+
+     <table class="param-panel" id="stem-model-selection-panel">
+     </table>
+
+     <div class="params-view">
+      <table class="param-panel" id="general-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="ui-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="stem-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="stem-quad-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="stem-wings-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="balg-tube-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="balg-base-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="balg-wings-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="material-parameters-panel">
+      </table>
+
+      <table class="param-panel" id="visrange-parameters-panel">
+      </table>
+     </div>
+
+     <div class="bottom-params">
+      <div id="structure-tree">
+      </div>
+
+      <table>
+       <tr>
+
+        <td><button id="new-group-button">New group</button></td>
+        <td><button id="delete-group-button">Delete group</button></td>
+        <td><button id="rename-group-button">Rename group</button></td>
+
+       </tr>
+      </table>
+     </div>
+    </td>
+  </tr>
+  </table>
+
+  <script src="extdeps/webgl-utils.js"></script>
+
+  <script src="core/cpl.js"></script>
+  <script src="core/defs.js"></script>
+  <script src="core/math.js"></script>
+  <script src="core/rng.js"></script>
+  <script src="core/color.js"></script>
+  <script src="core/spline.js"></script>
+  <script src="core/error.js"></script>
+  <script src="core/strcodec.js"></script>
+  <script src="core/fmtio.js"></script>
+  <script src="core/materialdef.js"></script>
+  <script src="core/visrange.js"></script>
+  <script src="core/branchgroup.js"></script>
+  <script src="core/segline.js"></script>
+  <script src="core/stemtube.js"></script>
+  <script src="core/stemquad.js"></script>
+  <script src="core/stemwings.js"></script>
+  <script src="core/balgbase.js"></script>
+  <script src="core/balgtube.js"></script>
+  <script src="core/balgwings.js"></script>
+  <script src="core/plant.js"></script>
+
+  <script src="htmlapp/cplcamera.js"></script>
+  <script src="htmlapp/cplrenderstate.js"></script>
+  <script src="htmlapp/cpltexture.js"></script>
+  <script src="htmlapp/cpltexturecache.js"></script>
+  <script src="htmlapp/cplshader.js"></script>
+  <script src="htmlapp/cplmaterial.js"></script>
+  <script src="htmlapp/cplmesh.js"></script>
+  <script src="htmlapp/cplview.js"></script>
+  <script src="htmlapp/cplundo.js"></script>
+  <script src="htmlapp/cplapp.js"></script>
+  <script src="htmlapp/cplrender.js"></script>
+
+  <script src="htmlapp/muifuncedit.js"></script>
+  <script src="htmlapp/muirangeedit.js"></script>
+  <script src="htmlapp/muicheckbox.js"></script>
+  <script src="htmlapp/muidropdownlist.js"></script>
+  <script src="htmlapp/muicoloredit.js"></script>
+  <script src="htmlapp/muitools.js"></script>
+  <script src="htmlapp/muistructview.js"></script>
+  <script src="htmlapp/muistemmodelselector.js"></script>
+  <script src="htmlapp/muigeneralparams.js"></script>
+  <script src="htmlapp/muistemtubeparams.js"></script>
+  <script src="htmlapp/muistemquadparams.js"></script>
+  <script src="htmlapp/muistemwingsparams.js"></script>
+  <script src="htmlapp/muibalgbaseparams.js"></script>
+  <script src="htmlapp/muibalgtubeparams.js"></script>
+  <script src="htmlapp/muibalgwingsparams.js"></script>
+  <script src="htmlapp/muimaterialparams.js"></script>
+  <script src="htmlapp/muivisrangeparams.js"></script>
+  <script src="htmlapp/muiuiparams.js"></script>
+
+  <script src="plugins/exportobj.js"></script>
+
+  <script src="extdeps/jszip.min.js"></script>
+
+  <script src="htmlapp/main.js"></script>
+ </body>
+</html>
+

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Wings stems geometry generation test</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/stemwings.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.assert.floatArraysAlmostEqual = function(actual,expected,message)
+   {
+    var EPSILON = 0.0005;
+    var ok = true;
+
+    if (actual.length == expected.length)
+     {
+      for (var i = 0; ok && i < actual.length; i++)
+       {
+        if (Math.abs(actual[i] - expected[i]) > EPSILON)
+         {
+          ok = false;
+         }
+       }
+     }
+    else
+     {
+      ok = false;
+     }
+
+    this.pushResult
+     ({
+       result : ok,
+       actual : actual,
+       expected : expected,
+       message : message
+      });
+   }
+
+  function createDefaultWingsStem ()
+   {
+    var offset      = new CPL.Core.Vector3(0.0,0.0,0.0);
+    var orientation = CPL.Core.Quaternion.makeIdentity();
+
+    var parentStem = new CPL.Core.StemTube();
+
+    parentStem.length         = 10.0;
+    parentStem.axisResolution = 2;
+
+    var phototropism = new CPL.Core.Spline();
+
+    phototropism.addPoint(0.0,0.5);
+    phototropism.addPoint(1.0,0.0);
+
+    parentStem.phototropism = phototropism;
+
+    var parentInstance = parentStem.createInstance(null,null,offset,orientation);
+
+    var stem = new CPL.Core.StemWings(parentStem);
+
+    return stem.createInstance(null,parentInstance,offset,orientation);
+   }
+
+  function createWingsStemWithProfile ()
+   {
+    var offset      = new CPL.Core.Vector3(0.0,0.0,0.0);
+    var orientation = CPL.Core.Quaternion.makeIdentity();
+
+    var parentStem = new CPL.Core.StemTube();
+
+    parentStem.length         = 10.0;
+    parentStem.axisResolution = 2;
+
+    var phototropism = new CPL.Core.Spline();
+
+    phototropism.addPoint(0.0,0.5);
+    phototropism.addPoint(1.0,0.0);
+
+    parentStem.phototropism = phototropism;
+
+    var parentInstance = parentStem.createInstance(null,null,offset,orientation);
+
+    var stem = new CPL.Core.StemWings(parentStem);
+
+    stem.sectionCount = 2;
+    stem.thickness    = 0.5;
+
+    var curvature = new CPL.Core.Spline();
+
+    curvature.addPoint(0.0,0.5);
+    curvature.addPoint(0.5,0.1);
+    curvature.addPoint(1.0,0.5);
+
+    stem.curvature = curvature;
+
+    return stem.createInstance(null,parentInstance,offset,orientation);
+   }
+
+  QUnit.test("Wings default attr,primitive count",function(assert)
+   {
+    var instance = createDefaultWingsStem();
+
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_VERTEX),9);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_NORMAL),12);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TEXCOORD0),9);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TANGENT),12);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BINORMAL),12);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BILLBOARD_POS),9);
+    assert.equal(instance.getPrimitiveCount(),4);
+   });
+
+  QUnit.test("Wings default attr values",function(assert)
+   {
+    var instance = createDefaultWingsStem();
+
+    var positions = [];
+    var normals   = [];
+    var texCoords = [];
+    var bufferOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillVAttrBuffers(positions,normals,texCoords,bufferOffsets);
+
+    assert.equal(bufferOffsets.positions,0);
+    assert.equal(bufferOffsets.normals,0);
+    assert.equal(bufferOffsets.texCoords,0);
+
+    assert.floatArraysAlmostEqual(positions,
+                                  [
+                                    0.500000,0.000000,0.000000,
+                                    0.000000,0.000000,0.000000,
+                                   -0.500000,0.000000,0.000000,
+                                    0.353553,5.353553,0.000000,
+                                    0.000000,5.000000,0.000000,
+                                   -0.353553,4.646447,0.000000,
+                                   -5.000000,5.500000,0.000000,
+                                   -5.000000,5.000000,0.000000,
+                                   -5.000000,4.500000,0.000000
+                                  ]);
+
+    assert.floatArraysAlmostEqual(normals,
+                                  [
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.000000,1.000000
+                                  ]);
+
+    assert.floatArraysAlmostEqual(texCoords,
+                                  [
+                                   1.000000,0.000000,
+                                   0.500000,0.000000,
+                                   0.000000,0.000000,
+                                   1.000000,0.500000,
+                                   0.500000,0.500000,
+                                   0.000000,0.500000,
+                                   1.000000,1.000000,
+                                   0.500000,1.000000,
+                                   0.000000,1.000000
+                                  ]);
+   });
+
+  QUnit.test("Wings default indices",function(assert)
+   {
+    var instance = createDefaultWingsStem();
+
+    var posIndices      = [];
+    var normalIndices   = [];
+    var texCoordIndices = [];
+
+    var attrOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillIndexBuffer(posIndices,normalIndices,texCoordIndices,attrOffsets,0);
+
+    assert.deepEqual(posIndices,[0,1,4,3,1,2,5,4,3,4,7,6,4,5,8,7]);
+    assert.deepEqual(normalIndices,[0,1,5,4,2,3,7,6,4,5,9,8,6,7,11,10]);
+    assert.deepEqual(texCoordIndices,[0,1,4,3,1,2,5,4,3,4,7,6,4,5,8,7]);
+   });
+
+  QUnit.test("Wings with profile attr,primitive count",function(assert)
+   {
+    var instance = createWingsStemWithProfile();
+
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_VERTEX),15);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_NORMAL),18);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TEXCOORD0),15);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TANGENT),18);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BINORMAL),18);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BILLBOARD_POS),15);
+    assert.equal(instance.getPrimitiveCount(),8);
+   });
+
+  QUnit.test("Wings with profile attr values",function(assert)
+   {
+    var instance = createWingsStemWithProfile();
+
+    var positions = [];
+    var normals   = [];
+    var texCoords = [];
+    var bufferOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillVAttrBuffers(positions,normals,texCoords,bufferOffsets);
+
+    assert.equal(bufferOffsets.positions,0);
+    assert.equal(bufferOffsets.normals,0);
+    assert.equal(bufferOffsets.texCoords,0);
+
+    assert.floatArraysAlmostEqual(positions,
+                                  [
+                                   0.500000,0.000000,0.000000,
+                                   0.250000,0.000000,-0.200000,
+                                   0.000000,0.000000,0.000000,
+                                   -0.250000,0.000000,-0.200000,
+                                   -0.500000,0.000000,0.000000,
+                                   0.353553,5.353553,0.000000,
+                                   0.176777,5.176777,-0.200000,
+                                   0.000000,5.000000,0.000000,
+                                   -0.176777,4.823223,-0.200000,
+                                   -0.353553,4.646447,0.000000,
+                                   -5.000000,5.500000,0.000000,
+                                   -5.000000,5.250000,-0.200000,
+                                   -5.000000,5.000000,0.000000,
+                                   -5.000000,4.750000,-0.200000,
+                                   -5.000000,4.500000,0.000000
+                                  ]);
+
+    assert.floatArraysAlmostEqual(normals,
+                                  [
+                                   -0.768221,0.000000,0.640184,
+                                   -0.000000,0.000000,1.000000,
+                                   0.768221,0.000000,0.640184,
+                                   -0.768221,0.000000,0.640184,
+                                   0.000000,0.000000,1.000000,
+                                   0.768221,0.000000,0.640184,
+                                   -0.543215,-0.543214,0.640184,
+                                   -0.000000,-0.000000,1.000000,
+                                   0.543215,0.543214,0.640184,
+                                   -0.543215,-0.543214,0.640184,
+                                   0.000000,0.000000,1.000000,
+                                   0.543215,0.543214,0.640184,
+                                   0.000000,-0.768221,0.640184,
+                                   0.000000,-0.000000,1.000000,
+                                   0.000000,0.768221,0.640184,
+                                   0.000000,-0.768221,0.640184,
+                                   0.000000,0.000000,1.000000,
+                                   0.000000,0.768221,0.640184
+                                  ]);
+
+    assert.floatArraysAlmostEqual(texCoords,
+                                  [
+                                   1.000000,0.000000,
+                                   0.750000,0.000000,
+                                   0.500000,0.000000,
+                                   0.250000,0.000000,
+                                   0.000000,0.000000,
+                                   1.000000,0.500000,
+                                   0.750000,0.500000,
+                                   0.500000,0.500000,
+                                   0.250000,0.500000,
+                                   0.000000,0.500000,
+                                   1.000000,1.000000,
+                                   0.750000,1.000000,
+                                   0.500000,1.000000,
+                                   0.250000,1.000000,
+                                   0.000000,1.000000
+                                  ]);
+   });
+
+  QUnit.test("Wings with profile indices",function(assert)
+   {
+    var instance = createWingsStemWithProfile();
+
+    var posIndices      = [];
+    var normalIndices   = [];
+    var texCoordIndices = [];
+
+    var attrOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillIndexBuffer(posIndices,normalIndices,texCoordIndices,attrOffsets,0);
+
+    assert.deepEqual(posIndices,[0,1,6,5,1,2,7,6,2,3,8,7,3,4,9,8,5,6,11,10,6,7,12,11,7,8,13,12,8,9,14,13]);
+    assert.deepEqual(normalIndices,[0,1,7,6,1,2,8,7,3,4,10,9,4,5,11,10,6,7,13,12,7,8,14,13,9,10,16,15,10,11,17,16]);
+    assert.deepEqual(texCoordIndices,[0,1,6,5,1,2,7,6,2,3,8,7,3,4,9,8,5,6,11,10,6,7,12,11,7,8,13,12,8,9,14,13]);
+   });
+
+ </script>
+</body>
+</html>
+

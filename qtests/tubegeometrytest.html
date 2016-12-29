@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Tube stems geometry generation test</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.assert.floatArraysAlmostEqual = function(actual,expected,message)
+   {
+    var EPSILON = 0.0005;
+    var ok = true;
+
+    if (actual.length == expected.length)
+     {
+      for (var i = 0; ok && i < actual.length; i++)
+       {
+        if (Math.abs(actual[i] - expected[i]) > EPSILON)
+         {
+          ok = false;
+         }
+       }
+     }
+    else
+     {
+      ok = false;
+     }
+
+    this.pushResult
+     ({
+       result : ok,
+       actual : actual,
+       expected : expected,
+       message : message
+      });
+   }
+
+  function createDefaultTubeStem ()
+   {
+    var stem        = new CPL.Core.StemTube();
+    var offset      = new CPL.Core.Vector3(0.0,0.0,0.0);
+    var orientation = CPL.Core.Quaternion.makeIdentity();
+
+    stem.length          = 1.0;
+    stem.axisResolution  = 1;
+    stem.crossResolution = 3;
+    stem.radius          = 0.5;
+
+    return stem.createInstance(null,null,offset,orientation);
+   }
+
+  QUnit.test("Tube default attr,primitive count",function(assert)
+   {
+    var instance = createDefaultTubeStem();
+
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_VERTEX),6);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_NORMAL),6);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TEXCOORD0),8);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TANGENT),6);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BINORMAL),6);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BILLBOARD_POS),6);
+    assert.equal(instance.getPrimitiveCount(),3);
+   });
+
+  QUnit.test("Tube default attr values",function(assert)
+   {
+    var instance = createDefaultTubeStem();
+
+    var positions = [];
+    var normals   = [];
+    var texCoords = [];
+    var bufferOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillVAttrBuffers(positions,normals,texCoords,bufferOffsets);
+
+    assert.equal(bufferOffsets.positions,0);
+    assert.equal(bufferOffsets.normals,0);
+    assert.equal(bufferOffsets.texCoords,0);
+
+    assert.floatArraysAlmostEqual(positions,
+                                  [
+                                    0.0,      1.0,  0.0,
+                                    0.0,      1.0,  0.0,
+                                    0.0,      1.0,  0.0,
+                                    0.0,      0.0,  0.5,
+                                    0.433013, 0.0, -0.25,
+                                   -0.433013, 0.0, -0.25
+                                  ]);
+
+    assert.floatArraysAlmostEqual(normals,
+                                  [
+                                    0.000000, 0.707107,  0.707107,
+                                    0.612372, 0.707107, -0.353553,
+                                   -0.612373, 0.707107, -0.353553,
+                                    0.000000, 0.707107,  0.707107,
+                                    0.612372, 0.707107, -0.353553,
+                                   -0.612373, 0.707107, -0.353553
+                                  ]);
+
+    assert.floatArraysAlmostEqual(texCoords,
+                                  [
+                                   0.000000,1.000000,
+                                   0.333333,1.000000,
+                                   0.666667,1.000000,
+                                   1.000000,1.000000,
+                                   0.000000,0.000000,
+                                   0.333333,0.000000,
+                                   0.666667,0.000000,
+                                   1.000000,0.000000
+                                  ]);
+   });
+
+  QUnit.test("Tube default indices",function(assert)
+   {
+    var instance = createDefaultTubeStem();
+
+    var posIndices      = [];
+    var normalIndices   = [];
+    var texCoordIndices = [];
+
+    var attrOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillIndexBuffer(posIndices,normalIndices,texCoordIndices,attrOffsets,0);
+
+    assert.deepEqual(posIndices,[0,3,4,1,1,4,5,2,2,5,3,0]);
+    assert.deepEqual(normalIndices,[0,3,4,1,1,4,5,2,2,5,3,0]);
+    assert.deepEqual(texCoordIndices,[0,4,5,1,1,5,6,2,2,6,7,3]);
+   });
+
+ </script>
+</body>
+</html>
+

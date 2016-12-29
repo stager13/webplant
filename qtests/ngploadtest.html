@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>NGP Load tests</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/strcodec.js"></script>
+ <script src="../src/core/fmtio.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/error.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+ var INITIAL_NGP = "P3D 0 14\n" +
+"Author __None__\n" +
+"AuthorURL __None__\n" +
+"LicenseName __None__\n" +
+"LicenseURL __None__\n" +
+"PlantInfoURL __None__\n" +
+"BaseSeed 123\n" +
+"BranchGroupName Plant\n" +
+"IsDummy false\n" +
+"BranchingAlg __None__\n" +
+"StemModel __None__\n" +
+"Material __None__\n" +
+"VisRangeEnabled false\n" +
+"VisRange 0.000000 1.000000\n" +
+"BranchModelCount 1\n" +
+"BranchGroupName Branch-1\n" +
+"IsDummy false\n" +
+"BranchingAlg Base\n" +
+"Shape 0\n" +
+"Spread 0.000000\n" +
+"Density 1.000000\n" +
+"DensityV 0.000000\n" +
+"MinNumber 1\n" +
+"MaxLimitEnabled true\n" +
+"MaxNumber 1\n" +
+"DeclFactor 0.000000\n" +
+"DeclFactorV 0.000000\n" +
+"RotAngle 0.000000\n" +
+"StemModel Tube\n" +
+"Length 15.000000\n" +
+"LengthV 0.000000\n" +
+"LengthOffsetDep CubicSpline\n" +
+"CPCount 2\n" +
+"Point 0.000000 1.000000\n" +
+"Point 1.000000 1.000000\n" +
+"AxisVariation 0.000000\n" +
+"AxisResolution 5\n" +
+"ProfileScaleBase 1.000000\n" +
+"ProfileScaleCurve CubicSpline\n" +
+"CPCount 2\n" +
+"Point 0.000000 1.000000\n" +
+"Point 1.000000 0.000000\n" +
+"ProfileResolution 8\n" +
+"PhototropismCurve CubicSpline\n" +
+"CPCount 2\n" +
+"Point 0.000000 0.500000\n" +
+"Point 1.000000 0.500000\n" +
+"BaseTexUMode 0\n" +
+"BaseTexUScale 1.000000\n" +
+"BaseTexVMode 0\n" +
+"BaseTexVScale 1.000000\n" +
+"Material Simple\n" +
+"BaseColor 0.700000 0.700000 0.700000\n" +
+"DiffuseTexture __None__\n" +
+"NormalMap __None__\n" +
+"AuxTexture0 __None__\n" +
+"AuxTexture1 __None__\n" +
+"DoubleSided false\n" +
+"Transparent false\n" +
+"BillboardMode __None__\n" +
+"AlphaCtrlEnabled false\n" +
+"AlphaFadeIn 0.000000\n" +
+"AlphaFadeOut 0.000000\n" +
+"VisRangeEnabled false\n" +
+"VisRange 0.000000 1.000000\n" +
+"BranchModelCount 0\n";
+
+  function TextLineLoader (text)
+   {
+    var lines = text.split("\n");
+    var count = lines.length;
+    var pos   = 0;
+
+    function readLine ()
+     {
+      if (pos < count)
+       {
+        return lines[pos++];
+       }
+      else
+       {
+        return null;
+       }
+     }
+
+    this.readLine = readLine;
+   }
+
+  QUnit.test("Load one-level plant",function(assert)
+   {
+    var lineLoader = new TextLineLoader(INITIAL_NGP);
+
+    var plant = null;
+
+    try
+     {
+      plant = CPL.Core.Plant.load(lineLoader);
+     }
+    catch (err)
+     {
+      if (err instanceof CPL.Core.Error)
+       {
+        console.log("CPL.Core.Error: " + err.getMessage());
+       }
+      else
+       {
+        console.log(err);
+       }
+     }
+
+    assert.ok(plant != null,"loading succeeded");
+    assert.ok(plant instanceof CPL.Core.Plant,"result is instance of Plant");
+   });
+
+ </script>
+</body>
+</html>
+

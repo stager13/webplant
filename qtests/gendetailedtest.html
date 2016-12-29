@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Detailed mesh generation test</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.assert.floatArraysAlmostEqual = function(actual,expected,message)
+   {
+    var EPSILON = 0.0005;
+    var ok = true;
+
+    if (actual.length == expected.length)
+     {
+      for (var i = 0; ok && i < actual.length; i++)
+       {
+        if (Math.abs(actual[i] - expected[i]) > EPSILON)
+         {
+          ok = false;
+         }
+       }
+     }
+    else
+     {
+      ok = false;
+     }
+
+    this.pushResult
+     ({
+       result : ok,
+       actual : actual,
+       expected : expected,
+       message : message
+      });
+   }
+
+  QUnit.test("Generation single quad",function(assert)
+   {
+    var expectedPositions = [ -0.25, 0.0, 0.0, 0.25, 0.0, 0.0, -0.25, 0.5, 0.0, 0.25, 0.5, 0.0 ];
+    var expectedNormals   = [ 0.0, 0.0, 1.0 ];
+    var expectedTexCoords = [ 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0 ];
+
+    var expectedPositionIndices = [ 0, 1, 3, 2];
+    var expectedNormalIndices   = [ 0, 0, 0, 0];
+    var expectedTexCoordIndices = [ 0, 1, 3, 2];
+
+    var expectedPrimitiveTypes = [CPL.Core.QUAD];
+
+    var plant = new CPL.Core.Plant();
+
+    var trunkStem = new CPL.Core.StemQuad();
+
+    trunkStem.length = 0.5;
+    trunkStem.width  = 0.5;
+
+    var trunk = new CPL.Core.BranchGroup(trunkStem,
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+
+    plant.appendBranchGroup(null,trunk);
+
+    var actualData = plant.generateMeshesData()[0];
+
+    assert.floatArraysAlmostEqual(actualData.positions,expectedPositions);
+    assert.floatArraysAlmostEqual(actualData.normals,expectedNormals);
+    assert.floatArraysAlmostEqual(actualData.texCoords,expectedTexCoords);
+    assert.floatArraysAlmostEqual(actualData.positionIndices,expectedPositionIndices);
+    assert.floatArraysAlmostEqual(actualData.normalIndices,expectedNormalIndices);
+    assert.floatArraysAlmostEqual(actualData.texCoordIndices,expectedTexCoordIndices);
+    assert.floatArraysAlmostEqual(actualData.primitiveTypes,expectedPrimitiveTypes);
+   });
+
+  QUnit.test("Generation two branch groups (quads)",function(assert)
+   {
+    var expectedPositions = [ -0.25, 0.0, 0.0, 0.25, 0.0, 0.0,
+                              -0.25, 0.5, 0.0, 0.25, 0.5, 0.0,
+                              -0.25, 0.0, 0.0, 0.25, 0.0, 0.0,
+                              -0.25, 0.5, 0.0, 0.25, 0.5, 0.0 ];
+    var expectedNormals   = [ 0.0, 0.0, 1.0, 0.0, 0.0, 1.0 ];
+    var expectedTexCoords = [ 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
+                              0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0 ];
+
+    var expectedPositionIndices = [ 0, 1, 3, 2, 4, 5, 7, 6 ];
+    var expectedNormalIndices   = [ 0, 0, 0, 0, 1, 1, 1, 1 ];
+    var expectedTexCoordIndices = [ 0, 1, 3, 2, 4, 5, 7, 6 ];
+
+    var expectedPrimitiveTypes = [ CPL.Core.QUAD, CPL.Core.QUAD ];
+
+    var plant = new CPL.Core.Plant();
+
+    var trunkStem = new CPL.Core.StemQuad();
+
+    trunkStem.length = 0.5;
+    trunkStem.width  = 0.5;
+
+    var branchingAlg = new CPL.Core.BranchingAlgBase();
+
+    branchingAlg.minNumber = 2;
+    branchingAlg.maxNumber = 2;
+
+    var trunk = new CPL.Core.BranchGroup(trunkStem,
+                                         branchingAlg,
+                                         new CPL.Core.MaterialDef());
+
+    plant.appendBranchGroup(null,trunk);
+
+    var meshesData = plant.generateMeshesData();
+    var actualData = meshesData[0];
+
+    assert.floatArraysAlmostEqual(actualData.positions,expectedPositions);
+    assert.floatArraysAlmostEqual(actualData.normals,expectedNormals);
+    assert.floatArraysAlmostEqual(actualData.texCoords,expectedTexCoords);
+    assert.floatArraysAlmostEqual(actualData.positionIndices,expectedPositionIndices);
+    assert.floatArraysAlmostEqual(actualData.normalIndices,expectedNormalIndices);
+    assert.floatArraysAlmostEqual(actualData.texCoordIndices,expectedTexCoordIndices);
+    assert.floatArraysAlmostEqual(actualData.primitiveTypes,expectedPrimitiveTypes);
+   });
+
+  QUnit.test("Generation single tube",function(assert)
+   {
+    var expectedPositions = [ 0.0, 10.0, 1.0, 0.866027, 10.0, -0.5,
+                             -0.866027, 10.0, -0.5, 0.0, 0.0, 1.0,
+                              0.866027, 0.0, -0.5, -0.866027, 0.0, -0.5 ];
+    var expectedNormals   = [ 0.0, 0.0, 1.0, 0.866025, 0.0, -0.5,
+                              -0.866025, 0.0, -0.5, 0.0, 0.0, 1.0,
+                              0.866025, 0.0, -0.5, -0.866025, 0.0, -0.5];
+    var expectedTexCoords = [ 0.0, 1.0, 0.333333, 1.0, 0.666667, 1.0,
+                              1.0, 1.0, 0.0, 0.0, 0.333333, 0.0,
+                              0.666667, 0.0, 1.0, 0.0];
+
+    var expectedPositionIndices = [ 0, 3, 4, 1, 1, 4, 5, 2, 2, 5, 3, 0 ];
+    var expectedNormalIndices   = [ 0, 3, 4, 1, 1, 4, 5, 2, 2, 5, 3, 0 ];
+    var expectedTexCoordIndices = [ 0, 4, 5, 1, 1, 5, 6, 2, 2, 6, 7, 3 ];
+
+    var expectedPrimitiveTypes = [CPL.Core.QUAD, CPL.Core.QUAD, CPL.Core.QUAD];
+
+    var plant = new CPL.Core.Plant();
+
+    var trunkStem = new CPL.Core.StemTube();
+
+    trunkStem.length = 10.0;
+    trunkStem.radius  = 2.0;
+    trunkStem.axisResolution = 1;
+    trunkStem.crossResolution = 3;
+    trunkStem.profile = CPL.Core.Spline.makeConstant(0.5);
+
+    var trunk = new CPL.Core.BranchGroup(trunkStem,
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+
+    plant.appendBranchGroup(null,trunk);
+
+    var actualData = plant.generateMeshesData()[0];
+
+    assert.floatArraysAlmostEqual(actualData.positions,expectedPositions);
+    assert.floatArraysAlmostEqual(actualData.normals,expectedNormals);
+    assert.floatArraysAlmostEqual(actualData.texCoords,expectedTexCoords);
+    assert.floatArraysAlmostEqual(actualData.positionIndices,expectedPositionIndices);
+    assert.floatArraysAlmostEqual(actualData.normalIndices,expectedNormalIndices);
+    assert.floatArraysAlmostEqual(actualData.texCoordIndices,expectedTexCoordIndices);
+    assert.floatArraysAlmostEqual(actualData.primitiveTypes,expectedPrimitiveTypes);
+   });
+
+ </script>
+</body>
+</html>
+

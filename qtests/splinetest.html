@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Spline tests</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/fmtio.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/error.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.assert.almostEqual = function(value,expected,message)
+   {
+    this.pushResult
+     ({
+       result : Math.abs(value - expected) < 0.0005,
+       actual : value,
+       expected : expected,
+       message : message
+      });
+   }
+
+  QUnit.test("three-point test spline",function(assert)
+   {
+    var spline = new CPL.Core.Spline();
+
+    spline.addPoint(0.000000,1.000000);
+    spline.addPoint(0.500000,0.500000);
+    spline.addPoint(1.000000,1.000000);
+
+    assert.almostEqual(spline.getValue(0.0),1.0,"value at 0.0 equals to expected");
+    assert.almostEqual(spline.getTangent(0.0),-1.5,"tangent at 0.0 equals to expected");
+    assert.almostEqual(spline.getValue(0.25),0.65625,"value at 0.25 equals to expected");
+    assert.almostEqual(spline.getTangent(0.25),-1.125,"tangent at 0.25 equals to expected");
+    assert.almostEqual(spline.getValue(0.5),0.5,"value at 0.5 equals to expected");
+    assert.almostEqual(spline.getTangent(0.5),0.0,"tangent at 0.5 equals to expected");
+    assert.almostEqual(spline.getValue(0.75),0.65625,"value at 0.75 equals to expected");
+    assert.almostEqual(spline.getTangent(0.75),1.125,"tangent at 0.75 equals to expected");
+    assert.almostEqual(spline.getValue(1.0),1.0,"value at 1.0 equals to expected");
+    assert.almostEqual(spline.getTangent(1.0),1.5,"tangent at 1.0 equals to expected");
+   });
+
+  QUnit.test("four-point test spline",function(assert)
+   {
+    var spline = new CPL.Core.Spline();
+
+    spline.addPoint(0.000000,1.000000);
+    spline.addPoint(0.876923,0.733333);
+    spline.addPoint(0.953846,0.500000);
+    spline.addPoint(1.000000,0.000000);
+
+    console.log(spline.pointsY2);
+
+    assert.almostEqual(spline.getValue(0.0),1.0,"value at 0.0 equals to expected");
+    assert.almostEqual(spline.getTangent(0.0),-0.168268,"tangent at 0.0 equals to expected");
+    assert.almostEqual(spline.getValue(0.25),0.955173,"value at 0.25 equals to expected");
+    assert.almostEqual(spline.getTangent(0.25),-0.201386,"tangent at 0.25 equals to expected");
+    assert.almostEqual(spline.getValue(0.5),0.893788,"value at 0.5 equals to expected");
+    assert.almostEqual(spline.getTangent(0.5),-0.300739,"tangent at 0.5 equals to expected");
+    assert.almostEqual(spline.getValue(0.75),0.799284,"value at 0.75 equals to expected");
+    assert.almostEqual(spline.getTangent(0.75),-0.466328,"tangent at 0.75 equals to expected");
+    assert.almostEqual(spline.getValue(1.0),0.0,"value at 1.0 equals to expected");
+    assert.almostEqual(spline.getTangent(1.0),-12.29355,"tangent at 1.0 equals to expected");
+   });
+
+ </script>
+</body>
+</html>
+
+

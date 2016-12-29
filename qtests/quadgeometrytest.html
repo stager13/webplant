@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Quad stems geometry generation test</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/defs.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.assert.floatArraysAlmostEqual = function(actual,expected,message)
+   {
+    var EPSILON = 0.0005;
+    var ok = true;
+
+    if (actual.length == expected.length)
+     {
+      for (var i = 0; ok && i < actual.length; i++)
+       {
+        if (Math.abs(actual[i] - expected[i]) > EPSILON)
+         {
+          ok = false;
+         }
+       }
+     }
+    else
+     {
+      ok = false;
+     }
+
+    this.pushResult
+     ({
+       result : ok,
+       actual : actual,
+       expected : expected,
+       message : message
+      });
+   }
+
+  function createDefaultQuadStem ()
+   {
+    var stem        = new CPL.Core.StemQuad();
+    var offset      = new CPL.Core.Vector3(0.0,0.0,0.0);
+    var orientation = CPL.Core.Quaternion.makeIdentity();
+
+    return stem.createInstance(null,null,offset,orientation);
+   }
+
+  function createCurved3SectQuadStem ()
+   {
+    var stem        = new CPL.Core.StemQuad();
+    var offset      = new CPL.Core.Vector3(0.0,0.0,0.0);
+    var orientation = CPL.Core.Quaternion.makeIdentity();
+
+    var curvature = new CPL.Core.Spline();
+
+    curvature.addPoint(0.0,0.5);
+    curvature.addPoint(0.5,1.0);
+    curvature.addPoint(1.0,0.5);
+
+    stem.sectionCount = 3;
+    stem.thickness    = 0.5;
+    stem.curvature    = curvature;
+
+    return stem.createInstance(null,null,offset,orientation);
+   }
+
+  QUnit.test("Quad default attr,primitive count",function(assert)
+   {
+    var instance = createDefaultQuadStem();
+
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_VERTEX),4);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_NORMAL),1);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TEXCOORD0),4);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TANGENT),1);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BINORMAL),1);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BILLBOARD_POS),4);
+    assert.equal(instance.getPrimitiveCount(),1);
+   });
+
+  QUnit.test("Quad default attr values",function(assert)
+   {
+    var instance = createDefaultQuadStem();
+
+    var positions = [];
+    var normals   = [];
+    var texCoords = [];
+    var bufferOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillVAttrBuffers(positions,normals,texCoords,bufferOffsets);
+
+    assert.equal(bufferOffsets.positions,0);
+    assert.equal(bufferOffsets.normals,0);
+    assert.equal(bufferOffsets.texCoords,0);
+
+    assert.floatArraysAlmostEqual(positions,
+                                  [-0.025,0.00,0.0,
+                                    0.025,0.00,0.0,
+                                   -0.025,0.05,0.0,
+                                    0.025,0.05,0.0]);
+
+    assert.floatArraysAlmostEqual(normals,[0.0,0.0,1.0]);
+
+    assert.floatArraysAlmostEqual(texCoords,
+                                  [0.0,0.0,
+                                   1.0,0.0,
+                                   0.0,1.0,
+                                   1.0,1.0]);
+   });
+
+  QUnit.test("Quad default indices",function(assert)
+   {
+    var instance = createDefaultQuadStem();
+
+    var posIndices      = [];
+    var normalIndices   = [];
+    var texCoordIndices = [];
+
+    var attrOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillIndexBuffer(posIndices,normalIndices,texCoordIndices,attrOffsets,0);
+
+    assert.deepEqual(posIndices,[0,1,3,2]);
+    assert.deepEqual(normalIndices,[0,0,0,0]);
+    assert.deepEqual(texCoordIndices,[0,1,3,2]);
+   });
+
+  QUnit.test("Quad (multi-seg,curved) attr,primitive count",function(assert)
+   {
+    var instance = createCurved3SectQuadStem();
+
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_VERTEX),8);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_NORMAL),4);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TEXCOORD0),8);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_TANGENT),4);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BINORMAL),4);
+    assert.equal(instance.getVAttrCount(CPL.Core.ATTR_BILLBOARD_POS),8);
+    assert.equal(instance.getPrimitiveCount(),3);
+   });
+
+  QUnit.test("Quad (multi-seg,curved) attr values",function(assert)
+   {
+    var instance = createCurved3SectQuadStem();
+
+    var positions = [];
+    var normals   = [];
+    var texCoords = [];
+    var bufferOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillVAttrBuffers(positions,normals,texCoords,bufferOffsets);
+
+    assert.equal(bufferOffsets.positions,0);
+    assert.equal(bufferOffsets.normals,0);
+    assert.equal(bufferOffsets.texCoords,0);
+
+    assert.floatArraysAlmostEqual(positions,
+                                  [-0.025, 0.0,      0.0,
+                                    0.025, 0.0,      0.0,
+                                   -0.025, 0.016667, 0.212963,
+                                    0.025, 0.016667, 0.212963,
+                                   -0.025, 0.033333, 0.212963,
+                                    0.025, 0.033333, 0.212963,
+                                   -0.025, 0.05,     0.0,
+                                    0.025, 0.05,     0.0 ]);
+
+    assert.floatArraysAlmostEqual(normals,
+                                  [ 0.0, -0.832050, 0.554700,
+                                    0.0, -0.640184, 0.768221,
+                                    0.0,  0.640184, 0.768221,
+                                    0.0,  0.832050, 0.554700
+                                    ]);
+
+    assert.floatArraysAlmostEqual(texCoords,
+                                  [0.0,0.0,
+                                   1.0,0.0,
+                                   0.0,0.333333,
+                                   1.0,0.333333,
+                                   0.0,0.666667,
+                                   1.0,0.666667,
+                                   0.0,1.0,
+                                   1.0,1.0]);
+   });
+
+  QUnit.test("Quad (multi-seg,curved) indices",function(assert)
+   {
+    var instance = createCurved3SectQuadStem();
+
+    var posIndices      = [];
+    var normalIndices   = [];
+    var texCoordIndices = [];
+
+    var attrOffsets = { positions : 0, normals : 0, texCoords : 0 };
+
+    instance.fillIndexBuffer(posIndices,normalIndices,texCoordIndices,attrOffsets,0);
+
+    assert.deepEqual(posIndices,[0,1,3,2,2,3,5,4,4,5,7,6]);
+    assert.deepEqual(normalIndices,[0,0,1,1,1,1,2,2,2,2,3,3]);
+    assert.deepEqual(texCoordIndices,[0,1,3,2,2,3,5,4,4,5,7,6]);
+   });
+
+ </script>
+</body>
+</html>
+

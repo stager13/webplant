@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width">
+ <title>Progressive generation test</title>
+ <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+</head>
+<body>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+ <script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+
+
+ <script src="../src/core/cpl.js"></script>
+ <script src="../src/core/plant.js"></script>
+ <script src="../src/core/branchgroup.js"></script>
+ <script src="../src/core/stemtube.js"></script>
+ <script src="../src/core/stemquad.js"></script>
+ <script src="../src/core/spline.js"></script>
+ <script src="../src/core/segline.js"></script>
+ <script src="../src/core/balgbase.js"></script>
+ <script src="../src/core/balgtube.js"></script>
+ <script src="../src/core/materialdef.js"></script>
+ <script src="../src/core/color.js"></script>
+ <script src="../src/core/rng.js"></script>
+ <script src="../src/core/math.js"></script>
+ <script src="../src/core/visrange.js"></script>
+ <!-- http://qunitjs.com -->
+
+ <script>
+
+  QUnit.test("Progressive generation single quad",function(assert)
+   {
+    var plant = new CPL.Core.Plant();
+
+    var trunk = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+
+    plant.appendBranchGroup(null,trunk);
+
+    var meshesDataBatch = plant.generateMeshesDataI()[0];
+
+    var generator = plant.createMeshGeneratorI();
+
+    while (!generator.done())
+     {
+      generator.step(1);
+     }
+
+    var meshesDataProgressive = generator.getMeshData(0);
+
+    assert.deepEqual(meshesDataProgressive,meshesDataBatch);
+   });
+
+  QUnit.test("Progressive generation multiple quads",function(assert)
+   {
+    var plant = new CPL.Core.Plant();
+
+    var trunk = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+
+    trunk.branchingAlg.spread    = 1.0;
+    trunk.branchingAlg.minNumber = 10;
+    trunk.branchingAlg.maxNumber = 10;
+
+    plant.appendBranchGroup(null,trunk);
+
+    var meshesDataBatch = plant.generateMeshesDataI()[0];
+
+    var generator = plant.createMeshGeneratorI();
+
+    while (!generator.done())
+     {
+      generator.step(1);
+     }
+
+    var meshesDataProgressive = generator.getMeshData(0);
+
+    assert.deepEqual(meshesDataProgressive,meshesDataBatch);
+   });
+
+  QUnit.test("Progressive generation two levels",function(assert)
+   {
+    var plant = new CPL.Core.Plant();
+
+    var trunk = new CPL.Core.BranchGroup(new CPL.Core.StemTube(),
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+    var branches = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                            new CPL.Core.BranchingAlgTube(),
+                                            new CPL.Core.MaterialDef());
+
+    trunk.branchingAlg.spread    = 1.0;
+    trunk.branchingAlg.minNumber = 1;
+    trunk.branchingAlg.maxNumber = 1;
+
+    branches.branchingAlg.minNumber = 1;
+    branches.branchingAlg.maxNumber = 1;
+
+    plant.appendBranchGroup(null,trunk);
+    plant.appendBranchGroup(trunk,branches);
+
+    var trunkDataBatch  = plant.generateMeshesDataI()[0];
+    var branchDataBatch = plant.generateMeshesDataI()[1];
+
+    var generator = plant.createMeshGeneratorI();
+
+    while (!generator.done())
+     {
+      generator.step(1);
+     }
+
+    var trunkDataProgressive = generator.getMeshData(0);
+    var branchDataProgressive = generator.getMeshData(1);
+
+    assert.deepEqual(trunkDataProgressive,trunkDataBatch);
+    assert.deepEqual(branchDataProgressive,branchDataBatch);
+   });
+
+  QUnit.test("Progressive generation three levels with randomization",function(assert)
+   {
+    var plant = new CPL.Core.Plant();
+
+    var trunk = new CPL.Core.BranchGroup(new CPL.Core.StemTube(),
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+    var branches = new CPL.Core.BranchGroup(new CPL.Core.StemTube(),
+                                            new CPL.Core.BranchingAlgTube(),
+                                            new CPL.Core.MaterialDef());
+
+    var leaves = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                          new CPL.Core.BranchingAlgTube(),
+                                          new CPL.Core.MaterialDef());
+
+    trunk.stem.axisResolution = 1;
+    trunk.branchingAlg.spread    = 1.0;
+    trunk.branchingAlg.minNumber = 1;
+    trunk.branchingAlg.maxNumber = 1;
+
+    branches.stem.axisResolution = 1;
+    branches.branchingAlg.minNumber = 5;
+    branches.branchingAlg.maxNumber = 5;
+    branches.branchingAlg.declinationV = 0.0;
+
+    leaves.branchingAlg.minNumber = 5;
+    leaves.branchingAlg.maxNumber = 5;
+    leaves.branchingAlg.declinationV = 0.9;
+
+    plant.appendBranchGroup(null,trunk);
+    plant.appendBranchGroup(trunk,branches);
+    plant.appendBranchGroup(branches,leaves);
+
+    var trunkDataBatch  = plant.generateMeshesDataI()[0];
+    var branchDataBatch = plant.generateMeshesDataI()[1];
+    var leavesDataBatch = plant.generateMeshesDataI()[2];
+
+    var generator = plant.createMeshGeneratorI();
+
+    while (!generator.done())
+     {
+      generator.step(1);
+     }
+
+    var trunkDataProgressive  = generator.getMeshData(0);
+    var branchDataProgressive = generator.getMeshData(1);
+    var leavesDataProgressive = generator.getMeshData(2);
+
+    assert.deepEqual(trunkDataProgressive,trunkDataBatch);
+    assert.deepEqual(branchDataProgressive,branchDataBatch);
+    assert.deepEqual(leavesDataProgressive,leavesDataBatch);
+   });
+
+  QUnit.test("Progressive generation siblings with random density",function(assert)
+   {
+    var plant = new CPL.Core.Plant();
+
+    var trunk = new CPL.Core.BranchGroup(new CPL.Core.StemTube(),
+                                         new CPL.Core.BranchingAlgBase(),
+                                         new CPL.Core.MaterialDef());
+    var branches1 = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                             new CPL.Core.BranchingAlgTube(),
+                                             new CPL.Core.MaterialDef());
+
+    var branches2 = new CPL.Core.BranchGroup(new CPL.Core.StemQuad(),
+                                             new CPL.Core.BranchingAlgTube(),
+                                             new CPL.Core.MaterialDef());
+
+    trunk.stem.axisResolution  = 1;
+    trunk.stem.crossResolution = 3;
+    trunk.branchingAlg.spread    = 1.0;
+    trunk.branchingAlg.minNumber = 1;
+    trunk.branchingAlg.maxNumber = 1;
+
+    branches1.branchingAlg.density   = 0.5;
+    branches1.branchingAlg.densityV  = 1.0;
+
+    branches2.branchingAlg.density   = 0.5;
+    branches2.branchingAlg.densityV  = 1.0;
+
+    plant.appendBranchGroup(null,trunk);
+    plant.appendBranchGroup(trunk,branches1);
+    plant.appendBranchGroup(trunk,branches2);
+
+    var trunkDataBatch   = plant.generateMeshesDataI()[0];
+    var branch1DataBatch = plant.generateMeshesDataI()[1];
+    var branch2DataBatch = plant.generateMeshesDataI()[2];
+
+    var generator = plant.createMeshGeneratorI();
+
+    while (!generator.done())
+     {
+      generator.step(1);
+     }
+
+    var trunkDataProgressive   = generator.getMeshData(0);
+    var branch1DataProgressive = generator.getMeshData(1);
+    var branch2DataProgressive = generator.getMeshData(2);
+
+    assert.deepEqual(trunkDataProgressive,trunkDataBatch);
+    assert.deepEqual(branch1DataProgressive,branch1DataBatch);
+    assert.deepEqual(branch2DataProgressive,branch2DataBatch);
+   });
+
+ </script>
+</body>
+</html>
+
